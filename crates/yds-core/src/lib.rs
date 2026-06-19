@@ -117,7 +117,7 @@ mod tests {
     #[test]
     fn app_metadata_is_stable() {
         assert_eq!(APP_NAME, "ya-disk-sync");
-        assert_eq!(APP_VERSION, "0.1.0");
+        assert_eq!(APP_VERSION, "0.1.1");
     }
 
     #[test]

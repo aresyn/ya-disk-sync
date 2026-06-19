@@ -44,6 +44,11 @@ jobs:
       - name: Build release binary
         run: cargo build --release -p yds-cli
 
+      - name: Install Inno Setup
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: choco install innosetup --no-progress --yes
+
       - name: Package Linux artifact
         if: runner.os == 'Linux'
         shell: bash
@@ -65,23 +70,45 @@ jobs:
         run: |
           $version = (Get-Content -LiteralPath Cargo.toml -Raw | Select-String -Pattern 'version = "([^"]+)"').Matches[0].Groups[1].Value
           $artifact = "ya-disk-sync-$version-${{ matrix.name }}"
-          New-Item -ItemType Directory -Force -Path "dist\$artifact" | Out-Null
-          New-Item -ItemType Directory -Force -Path "dist\$artifact\scripts" | Out-Null
-          Copy-Item -LiteralPath "target\release\ya-disk-sync.exe" -Destination "dist\$artifact\ya-disk-sync.exe"
-          Copy-Item -LiteralPath "README.md" -Destination "dist\$artifact\README.md"
-          Copy-Item -LiteralPath "LICENSE" -Destination "dist\$artifact\LICENSE"
-          Copy-Item -LiteralPath "docs" -Destination "dist\$artifact\docs" -Recurse
-          Copy-Item -LiteralPath "assets" -Destination "dist\$artifact\assets" -Recurse
-          Copy-Item -LiteralPath "scripts\install-windows-service.ps1" -Destination "dist\$artifact\scripts\install-windows-service.ps1"
-          Compress-Archive -Path "dist\$artifact\*" -DestinationPath "dist\$artifact.zip" -Force
-          $hash = Get-FileHash -Algorithm SHA256 -LiteralPath "dist\$artifact.zip"
-          "$($hash.Hash.ToLowerInvariant())  $artifact.zip" | Set-Content -LiteralPath "dist\$artifact.zip.sha256" -Encoding ASCII
+          $payload = "dist\windows-payload"
+          New-Item -ItemType Directory -Force -Path $payload | Out-Null
+          New-Item -ItemType Directory -Force -Path "$payload\scripts" | Out-Null
+          Copy-Item -LiteralPath "target\release\ya-disk-sync.exe" -Destination "$payload\ya-disk-sync.exe"
+          Copy-Item -LiteralPath "README.md" -Destination "$payload\README.md"
+          Copy-Item -LiteralPath "LICENSE" -Destination "$payload\LICENSE"
+          Copy-Item -LiteralPath "docs" -Destination "$payload\docs" -Recurse
+          Copy-Item -LiteralPath "assets" -Destination "$payload\assets" -Recurse
+          Copy-Item -LiteralPath "scripts\install-windows-service.ps1" -Destination "$payload\scripts\install-windows-service.ps1"
+
+          Compress-Archive -Path "$payload\*" -DestinationPath "dist\$artifact-portable.zip" -Force
+
+          $iscc = Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path -LiteralPath $iscc)) {
+            $iscc = (Get-Command ISCC.exe -ErrorAction Stop).Source
+          }
+          $payloadPath = (Resolve-Path -LiteralPath $payload).Path
+          $distPath = (Resolve-Path -LiteralPath "dist").Path
+          $generatedIss = "dist\ya-disk-sync-$version.generated.iss"
+          $issTemplate = Get-Content -LiteralPath "packaging\windows\ya-disk-sync.iss" -Raw -Encoding UTF8
+          $issTemplate.Replace('#define AppVersion "0.1.1"', "#define AppVersion `"$version`"") |
+            Set-Content -LiteralPath $generatedIss -Encoding UTF8
+          & $iscc $generatedIss "/DPayloadDir=$payloadPath" "/DOutputDir=$distPath"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Inno Setup build failed"
+          }
+
+          foreach ($path in @("dist\$artifact-portable.zip", "dist\$artifact-setup.exe")) {
+            $hash = Get-FileHash -Algorithm SHA256 -LiteralPath $path
+            "$($hash.Hash.ToLowerInvariant())  $(Split-Path -Leaf $path)" |
+              Set-Content -LiteralPath "$path.sha256" -Encoding ASCII
+          }
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
           name: ya-disk-sync-${{ matrix.name }}
           path: |
+            dist/*.exe
             dist/*.zip
             dist/*.tar.gz
             dist/*.sha256
@@ -103,12 +130,17 @@ jobs:
         shell: bash
         run: |
           cd dist
-          sha256sum ya-disk-sync-*linux-x86_64.tar.gz ya-disk-sync-*windows-x86_64.zip > SHA256SUMS
+          files=(ya-disk-sync-*linux-x86_64.tar.gz ya-disk-sync-*windows-x86_64-setup.exe)
+          if compgen -G "ya-disk-sync-*windows-x86_64-portable.zip" > /dev/null; then
+            files+=(ya-disk-sync-*windows-x86_64-portable.zip)
+          fi
+          sha256sum "${files[@]}" > SHA256SUMS
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
           files: |
+            dist/*.exe
             dist/*.zip
             dist/*.tar.gz
             dist/SHA256SUMS

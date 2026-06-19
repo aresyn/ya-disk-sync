@@ -17,7 +17,7 @@
 - Хранит OAuth-токены в системном keyring. JSON-конфиг остаётся конфигом, а не кладбищем секретов.
 - Использует собственный Rust-клиент Яндекс Диска. Не вызывает `yacli` или другой внешний CLI для рабочих операций.
 
-В рабочем state уже учтено 859 012 локальных file/directory записей, из них 843 150 со статусом `synced`; кэш удалённого inventory хранит 726 157 ресурсов Яндекс Диска. Это не демо на десятке файлов. Узким местом обычно становится не scanner, а скорость API и канала до Яндекс Диска.
+Проверено на реальном рабочем зеркале: около 425 ГиБ данных, 859 012 локальных файлов и каталогов, 726 157 объектов в удалённом дереве Яндекс Диска. Крупнейший root был около 300 ГиБ. На таких объёмах узким местом обычно становится API и канал до Яндекс Диска, поэтому проект сохраняет прогресс в SQLite и продолжает после сбоев, а не начинает всё заново.
 
 ## Модель зеркала
 
@@ -37,34 +37,36 @@
 
 ![Установка Windows-службы](assets/readme/service-flow.png)
 
-1. Скачайте архив `ya-disk-sync-0.1.0-windows-x86_64.zip` из [Releases](https://github.com/aresyn/ya-disk-sync/releases).
-2. Распакуйте его, откройте PowerShell от имени администратора и выполните:
+1. Скачайте `ya-disk-sync-0.1.1-windows-x86_64-setup.exe` из [Releases](https://github.com/aresyn/ya-disk-sync/releases).
+2. Запустите файл от имени администратора.
+3. Оставьте включённой галочку «Запустить службу после установки», если хотите сразу поднять локальный daemon.
 
-```powershell
-.\scripts\install-windows-service.ps1
-```
+Инсталлятор копирует `ya-disk-sync.exe` в `C:\Program Files\YaDiskSync`, создаёт рабочие каталоги в `C:\ProgramData\YaDiskSync`, создаёт стартовый `config.json`, если его ещё нет, проверяет конфиг и регистрирует Windows-службу.
 
-Скрипт копирует `ya-disk-sync.exe` в `C:\Program Files\YaDiskSync`, создаёт рабочие каталоги в `C:\ProgramData\YaDiskSync` и устанавливает службу.
-
-Минимальная ручная установка без скрипта:
-
-```powershell
-New-Item -ItemType Directory -Force -Path 'C:\Program Files\YaDiskSync' | Out-Null
-Copy-Item .\ya-disk-sync.exe 'C:\Program Files\YaDiskSync\ya-disk-sync.exe' -Force
-
-& 'C:\Program Files\YaDiskSync\ya-disk-sync.exe' --config 'C:\ProgramData\YaDiskSync\config\config.json' config init
-& 'C:\Program Files\YaDiskSync\ya-disk-sync.exe' --config 'C:\ProgramData\YaDiskSync\config\config.json' config validate
-& 'C:\Program Files\YaDiskSync\ya-disk-sync.exe' --config 'C:\ProgramData\YaDiskSync\config\config.json' service install --force
-& 'C:\Program Files\YaDiskSync\ya-disk-sync.exe' service start
-```
-
-После этого откройте локальный интерфейс:
+После установки откройте локальный интерфейс из меню «Пуск» или командой:
 
 ```powershell
 & 'C:\Program Files\YaDiskSync\ya-disk-sync.exe' --config 'C:\ProgramData\YaDiskSync\config\config.json' web open
 ```
 
 По умолчанию Web UI слушает `127.0.0.1:17691`.
+
+### Portable-вариант
+
+Если вам нужен ручной сценарий без GUI-инсталлятора, скачайте `ya-disk-sync-0.1.1-windows-x86_64-portable.zip`, распакуйте архив и запустите PowerShell от имени администратора:
+
+```powershell
+.\scripts\install-windows-service.ps1
+```
+
+Этот вариант оставлен для администраторов и автоматизации. Обычному пользователю проще поставить `setup.exe`.
+
+Ручные команды службы:
+
+```powershell
+& 'C:\Program Files\YaDiskSync\ya-disk-sync.exe' --config 'C:\ProgramData\YaDiskSync\config\config.json' service install --force
+& 'C:\Program Files\YaDiskSync\ya-disk-sync.exe' service start
+```
 
 ## Настройка корней синхронизации
 

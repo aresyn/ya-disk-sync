@@ -5034,7 +5034,7 @@ dependencies = [
 
 [[package]]
 name = "yds-cli"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -5056,7 +5056,7 @@ dependencies = [
 
 [[package]]
 name = "yds-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "ignore",
  "serde",
@@ -5067,7 +5067,7 @@ dependencies = [
 
 [[package]]
 name = "yds-linux"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "thiserror 2.0.18",
  "yds-core",
@@ -5075,7 +5075,7 @@ dependencies = [
 
 [[package]]
 name = "yds-scanner"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "filetime",
  "hex",
@@ -5093,7 +5093,7 @@ dependencies = [
 
 [[package]]
 name = "yds-service"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "axum",
  "filetime",
@@ -5119,7 +5119,7 @@ dependencies = [
 
 [[package]]
 name = "yds-state"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "rusqlite",
  "tempfile",
@@ -5130,7 +5130,7 @@ dependencies = [
 
 [[package]]
 name = "yds-sync"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "md-5",
  "rusqlite",
@@ -5148,7 +5148,7 @@ dependencies = [
 
 [[package]]
 name = "yds-web"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "keyring",
  "keyring-core",
@@ -5163,7 +5163,7 @@ dependencies = [
 
 [[package]]
 name = "yds-windows"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "thiserror 2.0.18",
  "tokio",
@@ -5176,7 +5176,7 @@ dependencies = [
 
 [[package]]
 name = "yds-yandex-disk"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "keyring",
  "keyring-core",

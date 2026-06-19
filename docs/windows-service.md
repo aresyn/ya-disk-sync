@@ -2,15 +2,45 @@
 
 Windows-служба запускает тот же runtime, что и `daemon`, но под Service Control Manager.
 
-## Установка через релизный архив
+## Установка через EXE-инсталлятор
 
-Откройте PowerShell от имени администратора в распакованном архиве:
+Основной Windows-сценарий: скачайте `ya-disk-sync-0.1.1-windows-x86_64-setup.exe` из GitHub Releases и запустите его от имени администратора.
+
+Инсталлятор:
+
+- копирует `ya-disk-sync.exe` в `C:\Program Files\YaDiskSync`;
+- создаёт `C:\ProgramData\YaDiskSync\config`, `state`, `logs`, `staging`;
+- создаёт `config.json`, только если его ещё нет;
+- проверяет конфиг через `config validate`;
+- регистрирует службу через установленный exe;
+- по умолчанию запускает службу после установки;
+- создаёт пункты меню «Пуск» для Web UI, статуса, логов, папки конфигурации и удаления.
+
+Удаление через стандартный uninstaller останавливает и удаляет службу, но не удаляет `C:\ProgramData\YaDiskSync`. Конфиг, state и логи остаются на месте для повторной установки или обновления.
+
+Silent-установка использует стандартные ключи Inno Setup:
+
+```powershell
+.\ya-disk-sync-0.1.1-windows-x86_64-setup.exe /SILENT /NORESTART
+```
+
+Для полностью тихой установки:
+
+```powershell
+.\ya-disk-sync-0.1.1-windows-x86_64-setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG=install.log
+```
+
+Путь установки можно изменить через `/DIR=...`. Существующие `config.json`, SQLite-state и логи не перезаписываются.
+
+## Portable-вариант
+
+Если нужен ручной сценарий, скачайте `ya-disk-sync-0.1.1-windows-x86_64-portable.zip`, распакуйте архив и откройте PowerShell от имени администратора:
 
 ```powershell
 .\scripts\install-windows-service.ps1
 ```
 
-Скрипт копирует бинарник в `C:\Program Files\YaDiskSync`, создаёт каталоги в `C:\ProgramData\YaDiskSync`, и вызывает `service install --force`.
+Скрипт копирует бинарник в `C:\Program Files\YaDiskSync`, создаёт каталоги в `C:\ProgramData\YaDiskSync` и вызывает `service install --force`.
 
 ## Ручные команды
 

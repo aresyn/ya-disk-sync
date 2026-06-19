@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.1.0 - unreleased
+## 0.1.1 - 2026-06-19
+
+- Added a Windows Inno Setup installer as the primary release artifact.
+- Updated the public README to focus on tested real-world sync volumes and the one-click Windows install path.
+- Kept the Windows portable zip as an advanced/manual option.
+
+## 0.1.0 - 2026-06-19
 
 - Scaffolded Rust workspace and CLI.
 - Added JSON configuration, path mapping and exclusion engine.
