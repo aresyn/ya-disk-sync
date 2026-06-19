@@ -1,0 +1,55 @@
+[workspace]
+members = [
+    "crates/yds-cli",
+    "crates/yds-core",
+    "crates/yds-linux",
+    "crates/yds-scanner",
+    "crates/yds-service",
+    "crates/yds-state",
+    "crates/yds-sync",
+    "crates/yds-web",
+    "crates/yds-windows",
+    "crates/yds-yandex-disk",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/aresyn/ya-disk-sync"
+homepage = "https://github.com/aresyn/ya-disk-sync"
+description = "Надежное зеркало больших рабочих каталогов в Яндекс Диск"
+
+[workspace.dependencies]
+anyhow = "1"
+axum = "0.8"
+clap = { version = "4", features = ["derive"] }
+filetime = "0.2"
+hex = "0.4"
+http = "1"
+ignore = "0.4"
+keyring = "4.0.1"
+keyring-core = "1.0.0"
+md-5 = "0.10"
+oauth2 = { version = "5.0.0", default-features = false }
+reqwest = { version = "0.13.4", features = ["form", "json", "query", "stream"] }
+rusqlite = { version = "0.40.1", features = ["bundled", "backup"] }
+secrecy = "0.10.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tempfile = "3"
+thiserror = "2"
+time = { version = "0.3", features = ["formatting", "parsing"] }
+tokio = { version = "1", features = ["fs", "io-util", "macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
+toml = "0.8"
+tower = { version = "0.5", features = ["util"] }
+tracing = "0.1"
+tracing-appender = "0.2"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tray-icon = { version = "0.24.1", default-features = false, features = ["common-controls-v6"] }
+urlencoding = "2"
+uuid = { version = "1", features = ["v4"] }
+windows-service = "0.8"
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }

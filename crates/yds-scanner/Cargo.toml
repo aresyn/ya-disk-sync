@@ -1,0 +1,21 @@
+[package]
+name = "yds-scanner"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+hex.workspace = true
+ignore.workspace = true
+md-5.workspace = true
+rusqlite.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+time.workspace = true
+uuid.workspace = true
+yds-core = { path = "../yds-core" }
+yds-state = { path = "../yds-state" }
+
+[dev-dependencies]
+filetime.workspace = true
+tempfile.workspace = true

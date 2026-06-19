@@ -1,0 +1,16 @@
+[package]
+name = "yds-web"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+keyring.workspace = true
+keyring-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+yds-core = { path = "../yds-core" }
+yds-state = { path = "../yds-state" }
+yds-yandex-disk = { path = "../yds-yandex-disk" }

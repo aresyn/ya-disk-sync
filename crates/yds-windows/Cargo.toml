@@ -1,0 +1,20 @@
+[package]
+name = "yds-windows"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[features]
+default = []
+native-tray = ["dep:tray-icon", "dep:windows-sys"]
+
+[dependencies]
+thiserror.workspace = true
+tokio.workspace = true
+yds-core = { path = "../yds-core" }
+yds-service = { path = "../yds-service" }
+
+[target.'cfg(windows)'.dependencies]
+tray-icon = { workspace = true, optional = true }
+windows-service.workspace = true
+windows-sys = { workspace = true, optional = true }

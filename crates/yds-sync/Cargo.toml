@@ -1,0 +1,21 @@
+[package]
+name = "yds-sync"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+md-5.workspace = true
+thiserror.workspace = true
+time.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+yds-core = { path = "../yds-core" }
+yds-scanner = { path = "../yds-scanner" }
+yds-state = { path = "../yds-state" }
+yds-yandex-disk = { path = "../yds-yandex-disk" }
+
+[dev-dependencies]
+rusqlite.workspace = true
+tempfile.workspace = true

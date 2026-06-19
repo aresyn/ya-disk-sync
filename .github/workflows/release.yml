@@ -1,0 +1,111 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x86_64
+            os: ubuntu-latest
+            archive: tar.gz
+          - name: windows-x86_64
+            os: windows-latest
+            archive: zip
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Select Rust toolchain
+        run: rustup default stable
+
+      - name: Check tag matches Cargo version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          version="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n 1)"
+          test "${GITHUB_REF_NAME}" = "v${version}"
+
+      - name: Build release binary
+        run: cargo build --release -p yds-cli
+
+      - name: Package Linux artifact
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          version="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n 1)"
+          artifact="ya-disk-sync-${version}-${{ matrix.name }}"
+          mkdir -p "dist/${artifact}"
+          cp target/release/ya-disk-sync "dist/${artifact}/ya-disk-sync"
+          cp README.md "dist/${artifact}/README.md"
+          cp LICENSE "dist/${artifact}/LICENSE"
+          cp -R docs "dist/${artifact}/docs"
+          cp -R assets "dist/${artifact}/assets"
+          tar -C dist -czf "dist/${artifact}.tar.gz" "${artifact}"
+          sha256sum "dist/${artifact}.tar.gz" > "dist/${artifact}.tar.gz.sha256"
+
+      - name: Package Windows artifact
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $version = (Get-Content -LiteralPath Cargo.toml -Raw | Select-String -Pattern 'version = "([^"]+)"').Matches[0].Groups[1].Value
+          $artifact = "ya-disk-sync-$version-${{ matrix.name }}"
+          New-Item -ItemType Directory -Force -Path "dist\$artifact" | Out-Null
+          New-Item -ItemType Directory -Force -Path "dist\$artifact\scripts" | Out-Null
+          Copy-Item -LiteralPath "target\release\ya-disk-sync.exe" -Destination "dist\$artifact\ya-disk-sync.exe"
+          Copy-Item -LiteralPath "README.md" -Destination "dist\$artifact\README.md"
+          Copy-Item -LiteralPath "LICENSE" -Destination "dist\$artifact\LICENSE"
+          Copy-Item -LiteralPath "docs" -Destination "dist\$artifact\docs" -Recurse
+          Copy-Item -LiteralPath "assets" -Destination "dist\$artifact\assets" -Recurse
+          Copy-Item -LiteralPath "scripts\install-windows-service.ps1" -Destination "dist\$artifact\scripts\install-windows-service.ps1"
+          Compress-Archive -Path "dist\$artifact\*" -DestinationPath "dist\$artifact.zip" -Force
+          $hash = Get-FileHash -Algorithm SHA256 -LiteralPath "dist\$artifact.zip"
+          "$($hash.Hash.ToLowerInvariant())  $artifact.zip" | Set-Content -LiteralPath "dist\$artifact.zip.sha256" -Encoding ASCII
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ya-disk-sync-${{ matrix.name }}
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
+            dist/*.sha256
+
+  publish:
+    name: Publish GitHub release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create combined checksums
+        shell: bash
+        run: |
+          cd dist
+          sha256sum ya-disk-sync-*linux-x86_64.tar.gz ya-disk-sync-*windows-x86_64.zip > SHA256SUMS
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.zip
+            dist/*.tar.gz
+            dist/SHA256SUMS

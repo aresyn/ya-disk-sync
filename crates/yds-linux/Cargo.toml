@@ -1,0 +1,9 @@
+[package]
+name = "yds-linux"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+thiserror.workspace = true
+yds-core = { path = "../yds-core" }
